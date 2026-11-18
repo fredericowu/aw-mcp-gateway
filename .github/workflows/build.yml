@@ -3,11 +3,13 @@ name: Build
 on:
   push:
     branches: [main]
+  pull_request:
+  merge_group:
   workflow_dispatch: {}
 
 jobs:
   back:
-    runs-on: [self-hosted, aw-baremetal]
+    runs-on: ${{ (github.event_name == 'pull_request' || github.event_name == 'merge_group') && fromJSON('["ubuntu-latest"]') || fromJSON('["self-hosted","aw-baremetal"]') }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
@@ -41,7 +43,7 @@ jobs:
         run: docker build -t aw-mcp-gateway-back:ci back/
 
   front:
-    runs-on: [self-hosted, aw-baremetal]
+    runs-on: ${{ (github.event_name == 'pull_request' || github.event_name == 'merge_group') && fromJSON('["ubuntu-latest"]') || fromJSON('["self-hosted","aw-baremetal"]') }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -55,7 +57,7 @@ jobs:
         run: docker build -t aw-mcp-gateway-front:ci front/
 
   connector:
-    runs-on: [self-hosted, aw-baremetal]
+    runs-on: ${{ (github.event_name == 'pull_request' || github.event_name == 'merge_group') && fromJSON('["ubuntu-latest"]') || fromJSON('["self-hosted","aw-baremetal"]') }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
@@ -69,3 +71,12 @@ jobs:
         run: python3 -m py_compile connector/*.py
       - name: Build image
         run: docker build -t aw-mcp-stdio-wrapper:ci connector/
+
+  rollout-validation:
+    if: always()
+    needs: [back, front, connector]
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          PASSED: ${{ needs.back.result == 'success' && needs.front.result == 'success' && needs.connector.result == 'success' }}
+        run: test "$PASSED" = true
