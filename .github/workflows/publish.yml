@@ -66,7 +66,10 @@ jobs:
       # ghcr.io rejects mixed-case namespaces — lowercase the owner login.
       - name: Lowercase repo owner
         id: owner
-        run: echo "lc=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+        # Pinned, not derived from the repo owner: the repo moved to a personal account, but the
+        # published package (and aw-app.json runtime.image) stays ghcr.io/tekflox/aw-mcp-gateway, which is
+        # public and what every installed gateway pulls. GHCR_PAT must have write access to that package.
+        run: echo "lc=tekflox" >> "$GITHUB_OUTPUT"
 
       - name: Resolve platforms
         id: plat
