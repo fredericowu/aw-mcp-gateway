@@ -12,7 +12,7 @@
     "disk": "~200 MB"
   },
   "runtime": {
-    "image": "ghcr.io/fredericowu/aw-mcp-gateway:latest",
+    "image": "ghcr.io/tekflox/aw-mcp-gateway:latest",
     "port": 9200,
     "env": {
       "AW_APP_SCAN_ROOTS": "/opt/aw-workspace/apps",
